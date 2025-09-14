@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: linear-gradient(to bottom, #1e3a8a, #3b82f6);
+            touch-action: manipulation;
+            overflow: auto;
+        }
+        .action-button {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .action-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .action-button:active {
+            transform: scale(0.98);
+        }
+        #feedback {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+        .screen {
+            min-height: 100vh;
+            width: 100%;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .video-container { 
+            position: relative; 
+            padding-bottom: 56.25%; 
+            height: 0; 
+            overflow: hidden; 
+            max-width: 100%; 
+            background: #000; 
+            border-radius: 1rem; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+        }
+        .video-container iframe { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center">
+
+    <!-- Tela de Login / Cadastro -->
+    <div id="login-screen" class="screen">
+        <div class="bg-white/70 p-6 sm:p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
+            <div id="login-form">
+                <h1 class="text-3xl sm:text-4xl font-bold text-sky-800">Acessar Teste</h1>
+                <p class="text-lg text-sky-700 mt-4">Digite seu código e senha para entrar. Se for seu primeiro acesso, clique em "Não Tenho Cadastro".</p>
+                <input type="text" id="login-code" placeholder="Seu código (Ex.: 36123.16)" class="mt-8 w-full text-xl p-3 rounded-xl border-4 border-sky-300">
+                <input type="password" id="login-password" placeholder="Sua senha" class="mt-4 w-full text-xl p-3 rounded-xl border-4 border-sky-300">
+                <button id="login-button" class="mt-6 w-full bg-blue-500 text-white text-2xl font-bold py-3 rounded-xl shadow-lg hover:bg-blue-600 transition flex items-center justify-center">
+                    <span class="button-text">Entrar</span>
+                    <div class="loader hidden ml-3"></div>
+                </button>
+                <p id="login-message" class="text-red-500 mt-4 h-5"></p>
+                <div class="flex space-x-2 mt-2">
+                    <button id="go-to-register" class="w-1/2 text-sky-600 hover:underline">Não tenho cadastro</button>
+                    <button id="view-ranking-button" class="w-1/2 text-sky-600 hover:underline">Ver Ranking</button>
+                </div>
+            </div>
+            <div id="register-form" class="hidden">
+                <h1 class="text-3xl sm:text-4xl font-bold text-sky-800">Criar Cadastro</h1>
+                <p class="text-lg text-sky-700 mt-4">Preencha seus dados para criar um acesso.</p>
+                <input type="text" id="register-name" placeholder="Nome Completo" class="mt-8 w-full text-xl p-3 rounded-xl border-4 border-sky-300">
+                <select id="register-class" class="mt-4 w-full text-xl p-3 rounded-xl border-4 border-sky-300 bg-white">
+                    <option value="">Selecione sua turma</option>
+                    <option value="5º Ano A">5º Ano A</option>
+                    <option value="5º Ano B">5º Ano B</option>
+                </select>
+                <input type="text" id="register-code" placeholder="Código de acesso (Ex.: 36123.16)" class="mt-4 w-full text-xl p-3 rounded-xl border-4 border-sky-300">
+                <input type="password" id="register-password" placeholder="Crie uma senha" class="mt-4 w-full text-xl p-3 rounded-xl border-4 border-sky-300">
+                <button id="register-button" class="mt-6 w-full bg-green-500 text-white text-2xl font-bold py-3 rounded-xl shadow-lg hover:bg-green-600 transition flex items-center justify-center">
+                    <span class="button-text">Cadastrar e Entrar</span>
+                    <div class="loader hidden ml-3"></div>
+                </button>
+                <p id="register-message" class="text-red-500 mt-4 h-5"></p>
+                <button id="back-to-login" class="mt-2 text-sky-600 hover:underline">Já tenho cadastro</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela do Vídeo -->
+    <div id="video-screen" class="screen hidden">
+        <div class="bg-white/70 p-6 sm:p-8 rounded-2xl shadow-xl max-w-3xl w-full text-center">
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-sky-800">Vamos aprender!</h2>
+            <p class="text-base sm:text-lg text-sky-700 mt-2 mb-4">Assista ao vídeo para revisar o conteúdo!</p>
+            <div class="video-container">
+                <div id="player"></div>
+            </div>
+            <button id="continue-btn" class="mt-8 w-full bg-green-500 text-white text-2xl sm:text-3xl font-bold py-3 sm:py-4 rounded-xl shadow-lg transition transform hover:scale-105 opacity-50 cursor-not-allowed" disabled>
+                Ir para o Teste!
+            </button>
+            <button id="skip-video-btn" class="mt-2 text-gray-500 hover:text-gray-700 hover:underline">Pular vídeo</button>
+        </div>
+    </div>
+
+    <!-- Tela do Jogo (Teste) -->
+    <div id="game-screen" class="screen hidden flex-col">
+        <header class="text-center mb-4 sm:mb-8 w-full max-w-4xl">
+            <div class="flex justify-end items-center w-full">
+                <div class="bg-white/50 rounded-full px-4 sm:px-6 py-2">
+                    <span class="text-xl sm:text-2xl font-semibold text-sky-800">Pontos: <span class="score-display">0.0</span>/12</span>
+                </div>
+            </div>
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-white mt-4" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+                Teste
+            </h1>
+             <p class="text-lg sm:text-xl text-white mt-2">Olá, <span id="player-firstname"></span>! Responda com atenção.</p>
+        </header>
+        <main class="w-full bg-white/70 p-6 sm:p-8 rounded-2xl shadow-xl text-center max-w-4xl">
+            <div id="question-container" class="mb-6 sm:mb-8 text-xl sm:text-2xl md:text-3xl font-semibold text-sky-800 min-h-[6rem] flex items-center justify-center">
+                <!-- A pergunta aparecerá aqui -->
+            </div>
+            <div id="answer-container">
+                 <div id="objective-options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6"></div>
+                 <textarea id="student-answer" class="w-full text-lg p-3 rounded-xl border-4 border-sky-300 focus:border-sky-500 focus:ring-sky-500 transition" rows="6" placeholder="Digite sua resposta aqui..."></textarea>
+                <div class="flex items-center space-x-4 mt-4">
+                    <button id="submit-answer-btn" class="action-button w-full bg-blue-500 text-white text-2xl font-bold py-3 rounded-xl shadow-lg hover:bg-blue-600 transition flex items-center justify-center">
+                        <span class="button-text">Enviar Resposta</span>
+                        <div class="loader hidden ml-3"></div>
+                    </button>
+                    <button id="hint-btn" class="action-button w-auto bg-teal-500 text-white text-lg font-bold py-3 px-4 rounded-xl shadow-lg hover:bg-teal-600 transition flex items-center justify-center">
+                        ✨ Pedir uma Dica
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Tela Final (Fim de Jogo) -->
+    <div id="end-screen" class="screen hidden">
+        <div class="bg-white/70 p-6 sm:p-8 rounded-2xl shadow-xl max-w-3xl w-full text-center my-8">
+            <div id="end-screen-content">
+                <h1 class="text-3xl sm:text-4xl font-bold text-sky-800">Fim de Teste!</h1>
+                <p id="final-message" class="text-lg text-sky-800 mt-4 font-semibold min-h-[5rem] flex items-center justify-center px-4"></p>
+                <div class="my-6 text-sky-700">
+                    <div class="text-xl"><strong>Pontuação Final:</strong> <span id="final-score">0.0</span>/12</div>
+                </div>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-bold text-sky-800 mt-6 mb-4">Ranking (Top 100)</h2>
+            <div class="overflow-y-auto h-64 bg-white/50 rounded-lg">
+                <table class="w-full text-left">
+                    <thead class="bg-sky-200 sticky top-0">
+                        <tr>
+                            <th class="p-2">#</th>
+                            <th class="p-2">Nome</th>
+                            <th class="p-2">Pontos</th>
+                            <th class="p-2">Turma</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ranking-body">
+                        <tr><td colspan="4" class="p-8 text-center"><div class="loader mx-auto"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-8 space-y-4">
+                <button id="play-again-button" class="action-button w-full bg-yellow-500 text-white text-2xl sm:text-3xl font-bold py-3 rounded-xl shadow-lg hover:bg-yellow-600 transition">
+                    Fazer Novamente
+                </button>
+                <button id="back-from-ranking-button" class="action-button w-full bg-gray-500 text-white text-2xl sm:text-3xl font-bold py-3 rounded-xl shadow-lg hover:bg-gray-600 transition hidden">
+                    Voltar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Feedback e Correção -->
+    <div id="feedback" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-6 sm:p-8 rounded-2xl text-white text-2xl font-bold shadow-2xl opacity-0 pointer-events-none w-11/12 max-w-lg text-center"></div>
+    
+    <div id="correction-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-xl text-center flex flex-col items-center">
+            <div class="loader mb-4"></div>
+            <p class="text-xl font-semibold text-sky-800">Aguarde! Processando com a IA...</p>
+        </div>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvzdtou17UCu8lmOFg9fxVEaLg1FnWcvexCYUZzqNLcUhiE6mZW_OkxeeI874AXZRT/exec';
+        const NOME_DESTE_JOGO = "Teste";
+
+        // --- ELEMENTOS DO DOM ---
+        const loginScreen = document.getElementById('login-screen');
+        const videoScreen = document.getElementById('video-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        const continueBtn = document.getElementById('continue-btn');
+        const skipVideoBtn = document.getElementById('skip-video-btn');
+        const loginForm = document.getElementById('login-form');
+        const loginCodeInput = document.getElementById('login-code');
+        const loginPasswordInput = document.getElementById('login-password');
+        const loginButton = document.getElementById('login-button');
+        const loginMessage = document.getElementById('login-message');
+        const goToRegisterButton = document.getElementById('go-to-register');
+        const registerForm = document.getElementById('register-form');
+        const registerNameInput = document.getElementById('register-name');
+        const registerClassInput = document.getElementById('register-class');
+        const registerCodeInput = document.getElementById('register-code');
+        const registerPasswordInput = document.getElementById('register-password');
+        const registerButton = document.getElementById('register-button');
+        const registerMessage = document.getElementById('register-message');
+        const backToLoginButton = document.getElementById('back-to-login');
+        const playerFirstNameEl = document.getElementById('player-firstname');
+        const finalMessageEl = document.getElementById('final-message');
+        const viewRankingButton = document.getElementById('view-ranking-button');
+        const backFromRankingButton = document.getElementById('back-from-ranking-button');
+        const playAgainButton = document.getElementById('play-again-button');
+        const endScreenContent = document.getElementById('end-screen-content');
+        const questionContainer = document.getElementById('question-container');
+        const studentAnswerTextarea = document.getElementById('student-answer');
+        const submitAnswerBtn = document.getElementById('submit-answer-btn');
+        const hintBtn = document.getElementById('hint-btn');
+        const feedbackEl = document.getElementById('feedback');
+        const correctionModal = document.getElementById('correction-modal');
+        const objectiveOptionsContainer = document.getElementById('objective-options-container');
+        
+        // --- ESTADO DO JOGO ---
+        let score = 0.0;
+        let startTime;
+        let loggedInUser = null;
+        let currentQuestionIndex = 0;
+        let shuffledQuestions = [];
+
+        // --- BANCO DE PERGUNTAS ---
+        const questions = [
+            // Dissertativas
+            { type: 'dissertative', question: "O que é a Black Friday e por que essa data se tornou conhecida no comércio?", explanation: "A Black Friday é um evento comercial anual, originado nos Estados Unidos, onde lojas oferecem grandes descontos e promoções para atrair clientes e iniciar a temporada de compras de fim de ano." },
+            { type: 'dissertative', question: "Explique o que é o setor terciário da economia.", explanation: "O setor terciário é o setor econômico que abrange as atividades de comércio (compra e venda de produtos) e a prestação de serviços (atividades imateriais como educação, saúde, transporte)." },
+            { type: 'dissertative', question: "Defina, com suas palavras, o que é a atividade comercial.", explanation: "Comércio é a prática de troca, compra e venda de mercadorias e bens de consumo entre pessoas, empresas ou países, com o objetivo de lucro." },
+            { type: 'dissertative', question: "Qual é a principal função do comércio varejista?", explanation: "O comércio varejista tem como principal função vender mercadorias em pequenas quantidades diretamente para os consumidores finais, que são as pessoas que irão utilizar os produtos." },
+            { type: 'dissertative', question: "Por que o comércio formal é importante para a sociedade?", explanation: "O comércio formal é importante porque ele opera de acordo com a lei, paga impostos que financiam serviços públicos (como saúde e educação) e garante direitos tanto para os consumidores (como garantia) quanto para os trabalhadores (como salário e férias)." },
+            { type: 'dissertative', question: "Descreva o que caracteriza o comércio informal.", explanation: "O comércio informal é caracterizado por atividades comerciais que não possuem registro legal, não pagam impostos e muitas vezes ocorrem em espaços públicos. Os trabalhadores não têm direitos trabalhistas garantidos." },
+            { type: 'dissertative', question: "Dê um exemplo de prestação de serviço e explique por que não é considerado um produto.", explanation: "Um exemplo é um corte de cabelo em um salão de beleza. Não é um produto porque é uma atividade imaterial; você paga pela habilidade e pelo tempo do profissional, e não por um objeto que pode levar para casa." },
+            { type: 'dissertative', question: "O que são serviços particulares?", explanation: "Serviços particulares são aqueles oferecidos por empresas privadas, onde as pessoas precisam pagar diretamente para utilizá-los, como escolas particulares, hospitais privados e planos de telefonia." },
+            { type: 'dissertative', question: "O que são serviços públicos? Dê dois exemplos.", explanation: "Serviços públicos são aqueles fornecidos ou regulados pelo governo para atender às necessidades da população, geralmente custeados por impostos. Exemplos incluem segurança pública (policiamento) e coleta de lixo." },
+            { type: 'dissertative', question: "Qual a importância do saneamento básico para uma cidade?", explanation: "O saneamento básico é um serviço público essencial para a saúde e qualidade de vida da população, pois inclui o tratamento e abastecimento de água, a coleta e tratamento de esgoto e a gestão do lixo, prevenindo doenças." },
+            { type: 'dissertative', question: "Explique a diferença entre uma cidade planejada e uma cidade espontânea.", explanation: "Uma cidade planejada é construída com base em um projeto prévio, que define o traçado das ruas e a localização dos bairros. Já uma cidade espontânea (ou natural) surge e cresce de forma orgânica, sem um plano inicial, conforme as pessoas ocupam o espaço." },
+            { type: 'dissertative', question: "O que define uma cidade como 'histórica'?", explanation: "Uma cidade é classificada como histórica quando possui um conjunto de construções, monumentos e locais antigos que são importantes para a história e a cultura de um país ou região, formando um patrimônio a ser preservado." },
+            { type: 'dissertative', question: "Qual a principal característica de uma cidade turística?", explanation: "A principal característica de uma cidade turística é ter o turismo como uma de suas principais atividades econômicas, atraindo muitos visitantes por suas belezas naturais, eventos culturais ou outras atrações." },
+            { type: 'dissertative', question: "O que é o processo de urbanização?", explanation: "Urbanização é o processo de crescimento das cidades, tanto em população quanto em área física. Envolve a expansão da infraestrutura urbana, como ruas, moradias e serviços, e a transformação de áreas rurais em urbanas." },
+            { type: 'dissertative', question: "O que a 'mancha urbana' representa em uma imagem de satélite?", explanation: "A mancha urbana representa a área construída de uma cidade, incluindo edifícios, casas, ruas e outras infraestruturas. Em imagens de satélite, ela aparece como uma área acinzentada, contrastando com áreas verdes ou de água." },
+            { type: 'dissertative', question: "Por que o transporte rodoviário é o mais utilizado no Brasil?", explanation: "O transporte rodoviário é o mais utilizado no Brasil devido à sua grande flexibilidade e capilaridade, ou seja, a extensa malha de ruas e estradas permite que ele chegue a praticamente qualquer local do território nacional." },
+            { type: 'dissertative', question: "Qual é a finalidade de um certificado de garantia ao comprar um produto?", explanation: "A finalidade da garantia é assegurar ao consumidor que o produto tem qualidade e funcionará corretamente. Caso apresente defeito dentro do prazo, o consumidor tem o direito à troca ou ao conserto gratuito." },
+            { type: 'dissertative', question: "O que foi o escambo na história do comércio?", explanation: "O escambo foi uma forma antiga de comércio onde as pessoas trocavam mercadorias diretamente umas com as outras, sem utilizar dinheiro. Por exemplo, trocava-se um saco de feijão por uma galinha." },
+            
+            // Objetivas
+            { type: 'objective', question: 'A Black Friday é uma data conhecida por:', options: ['Vender produtos sem descontos.', 'Oferecer grandes descontos e promoções.', 'Acontecer somente no início do ano.', 'Ser um evento apenas para comerciantes.'], answer: 'Oferecer grandes descontos e promoções.', explanation: 'A Black Friday é um evento comercial onde as lojas oferecem descontos significativos para atrair clientes.' },
+            { type: 'objective', question: 'O setor econômico que envolve o comércio e a prestação de serviços é chamado de:', options: ['Setor primário.', 'Setor secundário.', 'Setor terciário.', 'Setor quaternário.'], answer: 'Setor terciário.', explanation: 'O setor terciário abrange as atividades de comércio de produtos e prestação de serviços.' },
+            { type: 'objective', question: 'A prática de troca, compra e venda de mercadorias e bens de consumo é definida como:', options: ['Indústria.', 'Agricultura.', 'Comércio.', 'Pecuária.'], answer: 'Comércio.', explanation: 'Comércio é a atividade de compra, venda e troca de mercadorias.' },
+            { type: 'objective', question: 'O tipo de comércio onde as mercadorias são vendidas em pequenas quantidades diretamente para os consumidores finais é o:', options: ['Comércio atacadista.', 'Comércio informal.', 'Comércio varejista.', 'Comércio exterior.'], answer: 'Comércio varejista.', explanation: 'O comércio varejista vende produtos em pequenas quantidades diretamente ao consumidor final.' },
+            { type: 'objective', question: 'Quando uma empresa que vende produtos é registrada e paga impostos ao governo, estamos falando de:', options: ['Comércio informal.', 'Comércio clandestino.', 'Comércio formal.', 'Comércio autônomo.'], answer: 'Comércio formal.', explanation: 'O comércio formal é registrado, paga impostos e garante direitos aos consumidores e trabalhadores.' },
+            { type: 'objective', question: 'Qual a diferença entre o comércio atacadista e o varejista?', options: ['O atacadista vende serviços, e o varejista vende produtos.', 'O atacadista vende em grandes quantidades para revendedores, e o varejista vende em pequenas quantidades para consumidores finais.', 'O atacadista paga impostos, e o varejista não.', 'Não há diferença, são termos sinônimos.'], answer: 'O atacadista vende em grandes quantidades para revendedores, e o varejista vende em pequenas quantidades para consumidores finais.', explanation: 'O atacadista vende para outros comerciantes, enquanto o varejista vende diretamente ao público em pequenas quantidades.' },
+            { type: 'objective', question: 'Como a automatização tem impactado o setor terciário?', options: ['Tornando os serviços mais lentos e dependentes de pessoas.', 'Eliminando completamente todos os empregos.', 'Facilitando a vida das pessoas com caixas eletrônicos, aplicativos e autoatendimento, além de criar novas profissões.', 'Aumentando a necessidade de as pessoas saírem de casa para realizar compras.'], answer: 'Facilitando a vida das pessoas com caixas eletrônicos, aplicativos e autoatendimento, além de criar novas profissões.', explanation: 'A automatização trouxe mais praticidade e agilidade, e gerou novas áreas de trabalho.' },
+            { type: 'objective', question: 'Por que o transporte é uma ferramenta essencial para o comércio?', options: ['Porque ele permite que as matérias-primas e os produtos cheguem aos locais de transformação e venda.', 'Porque ele substitui a necessidade de ter lojas físicas.', 'Porque ele serve apenas para levar pessoas para o trabalho.', 'O transporte não tem relação direta com o comércio.'], answer: 'Porque ele permite que as matérias-primas e os produtos cheguem aos locais de transformação e venda.', explanation: 'O transporte conecta os setores da economia, levando matéria-prima, produtos intermediários e produtos finais aos consumidores.' },
+            { type: 'objective', question: 'O que são regiões metropolitanas?', options: ['Cidades que não têm influência sobre outras.', 'Cidades que se localizam apenas no litoral.', 'Conjuntos de municípios vizinhos que são integrados e ligados a uma cidade principal (metrópole), que exerce influência sobre eles.', 'Cidades que têm apenas uma função, como a industrial.'], answer: 'Conjuntos de municípios vizinhos que são integrados e ligados a uma cidade principal (metrópole), que exerce influência sobre eles.', explanation: 'Uma região metropolitana é um aglomerado de municípios interdependentes, liderados por uma metrópole.' },
+        ];
+
+
+        // --- FUNÇÕES GERAIS E DE TELA ---
+        function showScreen(screenToShow) {
+            document.querySelectorAll('.screen').forEach(screen => screen.classList.add('hidden'));
+            screenToShow.classList.remove('hidden');
+        }
+
+        function toggleButtonLoader(button, show) {
+            const buttonText = button.querySelector('.button-text');
+            const loader = button.querySelector('.loader');
+            if (buttonText && loader) {
+                buttonText.style.display = show ? 'none' : 'inline';
+                loader.style.display = show ? 'inline-block' : 'none';
+            }
+            button.disabled = show;
+        }
+
+        async function callAppsScript(action, data) {
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    redirect: 'follow',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8', },
+                    body: JSON.stringify({ action, ...data })
+                });
+                if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+                return await response.json();
+            } catch (error) {
+                console.error("Erro ao contatar o Apps Script:", error);
+                return { status: 'error', message: 'Falha de comunicação. Verifique sua conexão.' };
+            }
+        }
+        
+        function capitalizeName(name) {
+            return name.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
+        function handleSuccessfulLogin(userData) {
+            const firstName = userData.name.split(' ')[0];
+            loggedInUser = { ...userData, firstName };
+            sessionStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
+            playerFirstNameEl.textContent = firstName;
+            showScreen(videoScreen);
+        }
+
+        // --- LÓGICA DE LOGIN E CADASTRO ---
+        loginButton.addEventListener('click', async () => {
+            const code = loginCodeInput.value.trim();
+            const password = loginPasswordInput.value.trim();
+            loginMessage.textContent = '';
+            if (!code || !password) {
+                loginMessage.textContent = 'Preencha o código e a senha.';
+                return;
+            }
+            toggleButtonLoader(loginButton, true);
+            const result = await callAppsScript('login', { code, password });
+            toggleButtonLoader(loginButton, false);
+            if (result.status === 'success') {
+                handleSuccessfulLogin({ name: result.name, code: code, turma: result.turma });
+            } else if (result.status === 'not_found') {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                registerCodeInput.value = code;
+                registerCodeInput.removeAttribute('readonly');
+            } else {
+                loginMessage.textContent = result.message || 'Ocorreu um erro.';
+            }
+        });
+        
+        goToRegisterButton.addEventListener('click', () => {
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+            loginMessage.textContent = '';
+            registerCodeInput.removeAttribute('readonly');
+            registerCodeInput.value = '';
+        });
+
+        registerButton.addEventListener('click', async () => {
+            const rawName = registerNameInput.value.trim();
+            const turma = registerClassInput.value;
+            const code = registerCodeInput.value.trim();
+            const password = registerPasswordInput.value.trim();
+            registerMessage.textContent = '';
+            if (!rawName || !turma || !code || !password) {
+                registerMessage.textContent = 'Todos os campos são obrigatórios.';
+                return;
+            }
+            const name = capitalizeName(rawName);
+            toggleButtonLoader(registerButton, true);
+            const data = { name, turma, code, password };
+            const result = await callAppsScript('register', data);
+            toggleButtonLoader(registerButton, false);
+            if (result.status === 'success') {
+                handleSuccessfulLogin({ name: name, code: code, turma: turma });
+            } else {
+                registerMessage.textContent = result.message || 'Ocorreu um erro.';
+            }
+        });
+
+        backToLoginButton.addEventListener('click', () => {
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            registerMessage.textContent = '';
+        });
+
+        loginPasswordInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') loginButton.click(); });
+        loginCodeInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') loginButton.click(); });
+        registerPasswordInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') registerButton.click(); });
+        registerCodeInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') registerButton.click(); });
+        registerNameInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') registerButton.click(); });
+
+        window.addEventListener('load', () => {
+            const user = sessionStorage.getItem('loggedInUser');
+            if (user) {
+                loggedInUser = JSON.parse(user);
+                playerFirstNameEl.textContent = loggedInUser.firstName;
+                showScreen(videoScreen);
+            } else {
+                showScreen(loginScreen);
+            }
+            updateScoreDisplay();
+        });
+        
+        // --- LÓGICA DO VÍDEO ---
+        let player;
+        let progressCheckInterval;
+        let maxWatchedTime = 0;
+
+        function updateScoreDisplay() {
+            document.querySelectorAll('.score-display').forEach(el => el.textContent = score.toFixed(1));
+        }
+        
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '100%',
+                width: '100%',
+                videoId: 'dDpPW7uk46U',
+                playerVars: { 'playsinline': 1, 'rel': 0, 'controls': 1 },
+                events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange }
+            });
+        }
+
+        function onPlayerReady(event) {
+            maxWatchedTime = 0;
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.PLAYING) {
+                clearInterval(progressCheckInterval); 
+                progressCheckInterval = setInterval(() => {
+                    const currentTime = player.getCurrentTime();
+                    const duration = player.getDuration();
+
+                    if (currentTime > maxWatchedTime + 1.5) {
+                        player.seekTo(maxWatchedTime, true);
+                    } else if (currentTime > maxWatchedTime) {
+                        maxWatchedTime = currentTime;
+                    }
+
+                    if ((maxWatchedTime / duration) >= 0.9) {
+                        if (continueBtn.disabled) {
+                            continueBtn.disabled = false;
+                            continueBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        }
+                    }
+                }, 500);
+            } else {
+                clearInterval(progressCheckInterval);
+            }
+        }
+
+        continueBtn.addEventListener('click', () => {
+            if (!continueBtn.disabled) {
+                showScreen(gameScreen);
+                startGame();
+            }
+        });
+
+        skipVideoBtn.addEventListener('click', () => {
+            score = 0;
+            updateScoreDisplay();
+            showScreen(gameScreen);
+            startGame();
+        });
+
+        // --- LÓGICA DO TESTE ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function startGame() {
+            player.stopVideo();
+            score = 0.0;
+            currentQuestionIndex = 0;
+            
+            const dissertativeQuestions = shuffleArray(questions.filter(q => q.type === 'dissertative'));
+            const objectiveQuestions = shuffleArray(questions.filter(q => q.type === 'objective'));
+            
+            const numDissertative = 3; // Approx 25% of 12
+            const numObjective = 12 - numDissertative;
+
+            const roundQuestions = dissertativeQuestions.slice(0, numDissertative).concat(objectiveQuestions.slice(0, numObjective));
+            shuffledQuestions = shuffleArray(roundQuestions);
+
+            startTime = new Date();
+            updateScoreDisplay();
+            displayNextQuestion();
+        }
+
+        function displayNextQuestion() {
+            hintBtn.disabled = false;
+            submitAnswerBtn.disabled = false;
+
+            const currentQuestion = shuffledQuestions[currentQuestionIndex];
+            questionContainer.textContent = currentQuestion.question;
+
+            if (currentQuestion.type === 'dissertative') {
+                objectiveOptionsContainer.innerHTML = '';
+                objectiveOptionsContainer.classList.add('hidden');
+                studentAnswerTextarea.value = '';
+                studentAnswerTextarea.classList.remove('hidden');
+                studentAnswerTextarea.disabled = false;
+                submitAnswerBtn.classList.remove('hidden');
+                hintBtn.classList.remove('hidden');
+            } else { // Objective
+                studentAnswerTextarea.classList.add('hidden');
+                submitAnswerBtn.classList.add('hidden');
+                hintBtn.classList.add('hidden');
+                objectiveOptionsContainer.classList.remove('hidden');
+                objectiveOptionsContainer.innerHTML = '';
+                const shuffledOptions = shuffleArray([...currentQuestion.options]);
+                shuffledOptions.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option;
+                    button.classList.add('action-button', 'w-full', 'bg-white', 'text-sky-700', 'text-lg', 'sm:text-xl', 'font-bold', 'py-4', 'px-2', 'rounded-xl', 'shadow-lg', 'border-b-8', 'border-sky-300', 'hover:border-sky-400');
+                    button.addEventListener('click', handleObjectiveAnswer);
+                    objectiveOptionsContainer.appendChild(button);
+                });
+            }
+        }
+
+        function handleObjectiveAnswer(e) {
+            const selectedOption = e.target.textContent;
+            const currentQuestion = shuffledQuestions[currentQuestionIndex];
+            const correctAnswer = currentQuestion.answer;
+            const explanation = currentQuestion.explanation;
+
+            objectiveOptionsContainer.querySelectorAll('button').forEach(btn => btn.disabled = true);
+            hintBtn.disabled = true;
+
+            if (selectedOption === correctAnswer) {
+                score += 1.0;
+                showFeedback("Correto!", explanation, true, 1.0, true);
+                e.target.classList.remove('bg-white', 'border-sky-300');
+                e.target.classList.add('bg-green-400', 'border-green-600', 'text-white');
+            } else {
+                showFeedback(`Incorreto.`, `A resposta correta é: "${correctAnswer}".`, false, 0.0, true);
+                e.target.classList.remove('bg-white', 'border-sky-300');
+                e.target.classList.add('bg-red-400', 'border-red-600', 'text-white');
+            }
+            updateScoreDisplay();
+        }
+        
+        submitAnswerBtn.addEventListener('click', handleDissertativeAnswer);
+
+        async function handleDissertativeAnswer() {
+            const studentAnswer = studentAnswerTextarea.value.trim();
+            if (studentAnswer.length < 10) {
+                 showSimpleFeedback("Resposta muito curta!", "Por favor, elabore um pouco mais sua resposta.", false);
+                 return;
+            }
+
+            studentAnswerTextarea.disabled = true;
+            submitAnswerBtn.disabled = true;
+            hintBtn.disabled = true;
+            correctionModal.classList.remove('hidden');
+            correctionModal.querySelector('p').textContent = 'Aguarde! Corrigindo com a IA...';
+
+
+            const currentQuestion = shuffledQuestions[currentQuestionIndex];
+            const gradingPrompt = `
+                Você é um professor de geografia avaliando a resposta de um aluno do 5º ano.
+                A pergunta foi: "${currentQuestion.question}"
+                A resposta-base para correção é: "${currentQuestion.explanation}"
+                A resposta do aluno foi: "${studentAnswer}"
+
+                Com base na resposta do aluno, atribua uma nota de 0.0 a 1.0.
+            `;
+            
+            const gradingConfig = {
+                temperature: 0.2, 
+                responseMimeType: "application/json",
+                responseSchema: { type: "OBJECT", properties: { "score": { "type": "NUMBER" } }, required: ["score"] }
+            };
+
+            const result = await callGeminiAPI(gradingPrompt, gradingConfig);
+            let points = result ? result.score : null;
+
+             if (points !== null) {
+                points = Math.max(0, Math.min(1, points)); // Clamp score between 0 and 1
+            }
+            
+            correctionModal.classList.add('hidden');
+
+            if (points !== null) {
+                score += points;
+                const isCorrect = points >= 0.7;
+                const feedbackMsg = `Sua nota foi ${points.toFixed(1)}!`;
+                showFeedback(feedbackMsg, `A resposta esperada era sobre: ${currentQuestion.explanation}`, isCorrect, points, true);
+            } else {
+                 showFeedback("Erro na correção", "Não foi possível corrigir sua resposta. Tente novamente.", false, null, true);
+                 studentAnswerTextarea.disabled = false;
+                 submitAnswerBtn.disabled = false;
+                 hintBtn.disabled = false;
+            }
+
+            updateScoreDisplay();
+        }
+
+        // --- NOVOS RECURSOS COM GEMINI ---
+
+        hintBtn.addEventListener('click', async () => {
+            hintBtn.disabled = true;
+            correctionModal.classList.remove('hidden');
+            correctionModal.querySelector('p').textContent = 'Aguarde! Gerando uma dica...';
+            
+            const currentQuestion = shuffledQuestions[currentQuestionIndex];
+            const hintPrompt = `Você é um professor amigável para alunos do 5º ano. A pergunta é: "${currentQuestion.question}". Dê uma dica curta e simples em português para ajudar o aluno a pensar na resposta, mas não entregue a resposta.`;
+
+            const hintText = await callGeminiAPI(hintPrompt);
+
+            correctionModal.classList.add('hidden');
+
+            if (hintText) {
+                showSimpleFeedback("✨ Dica Mágica!", hintText, 'hint');
+            } else {
+                showSimpleFeedback("Ops!", "Não consegui gerar uma dica agora. Tente de novo!", false);
+            }
+            // A dica não reabilita o botão, o aluno precisa continuar
+        });
+
+        
+        async function callGeminiAPI(prompt, generationConfig = {}) {
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { 
+                    temperature: 0.4, 
+                    maxOutputTokens: 800, // Increased token limit
+                    ...generationConfig
+                },
+                safetySettings: [
+                    { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+                    { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+                    { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+                    { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+                ],
+            };
+            
+            let delay = 1000;
+            for (let i = 0; i < 3; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (!text) {
+                            console.error("No text part in Gemini's response candidate:", result.candidates?.[0]);
+                            continue;
+                        }
+                        if (generationConfig.responseMimeType === "application/json") {
+                            try { return JSON.parse(text); } 
+                            catch (e) { console.error("Failed to parse JSON from Gemini:", text, e); }
+                        } else {
+                            return text;
+                        }
+                    } else {
+                        console.error(`Gemini API error: ${response.status}`);
+                        const errorText = await response.text();
+                        console.error('Error details:', errorText);
+                    }
+                } catch (error) {
+                    console.error('Gemini API call failed during fetch, retrying...', error);
+                }
+                await new Promise(res => setTimeout(res, delay));
+                delay *= 2;
+            }
+            
+            console.error('Gemini API call failed after multiple retries.');
+            return null;
+        }
+
+        // --- FUNÇÕES DE FEEDBACK E MODAIS ---
+        
+        function showBonusQuestion(question, explanation) {
+             feedbackEl.innerHTML = `
+                <strong class="block text-3xl mb-2">✨ Pergunta Bônus!</strong>
+                <p class="text-xl font-normal mb-4">${question}</p>
+                <div id="bonus-answer-container" class="hidden my-4 p-3 bg-white/20 rounded-lg">
+                    <p class="text-lg font-normal">${explanation}</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button id="reveal-answer-btn" class="w-1/2 mt-4 bg-white text-sky-800 text-lg font-bold py-2 px-4 rounded-xl shadow-md">Revelar Resposta</button>
+                    <button id="close-bonus-btn" class="w-1/2 mt-4 bg-gray-600/50 text-white text-lg font-bold py-2 px-4 rounded-xl shadow-md">Fechar</button>
+                </div>
+            `;
+            feedbackEl.className = `fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-6 sm:p-8 rounded-2xl text-white font-bold shadow-2xl opacity-0 w-11/12 max-w-lg text-center bg-purple-600`;
+            
+            feedbackEl.classList.remove('opacity-0', 'pointer-events-none');
+            feedbackEl.style.transform = 'translate(-50%, -50%) scale(1)';
+
+            document.getElementById('reveal-answer-btn').addEventListener('click', (e) => {
+                document.getElementById('bonus-answer-container').classList.remove('hidden');
+                e.target.style.display = 'none';
+            }, { once: true });
+            document.getElementById('close-bonus-btn').addEventListener('click', () => {
+                feedbackEl.style.transform = 'translate(-50%, -50%) scale(0.5)';
+                feedbackEl.classList.add('opacity-0', 'pointer-events-none');
+            }, { once: true });
+        }
+
+
+        function showSimpleFeedback(title, message, type) {
+            const bgColor = type === 'hint' ? 'bg-teal-500' : (type ? 'bg-green-500' : 'bg-red-500');
+            feedbackEl.innerHTML = `
+                <strong class="block text-3xl">${title}</strong>
+                <span class="text-xl mt-2 block font-normal">${message}</span>
+                <button id="continue-feedback-btn" class="mt-4 bg-white text-sky-800 text-xl font-bold py-2 px-8 rounded-xl shadow-md hover:bg-gray-200 transition">OK</button>
+            `;
+            feedbackEl.className = `fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-6 sm:p-8 rounded-2xl text-white font-bold shadow-2xl opacity-0 w-11/12 max-w-lg text-center ${bgColor}`;
+            
+            feedbackEl.classList.remove('opacity-0', 'pointer-events-none');
+            feedbackEl.style.transform = 'translate(-50%, -50%) scale(1)';
+
+            document.getElementById('continue-feedback-btn').addEventListener('click', () => {
+                feedbackEl.style.transform = 'translate(-50%, -50%) scale(0.5)';
+                feedbackEl.classList.add('opacity-0', 'pointer-events-none');
+                 if(type === 'hint') {
+                    hintBtn.disabled = false;
+                }
+            }, { once: true });
+        }
+
+        function showFeedback(message, explanation, isConsideredCorrect, points, isAnswer) {
+            feedbackEl.innerHTML = `
+                <strong class="block text-3xl">${message}</strong>
+                <span class="text-xl mt-2 block font-normal">${explanation}</span>
+                <button id="continue-feedback-btn" class="mt-4 bg-white text-sky-800 text-xl font-bold py-2 px-8 rounded-xl shadow-md hover:bg-gray-200 transition">Continuar</button>
+            `;
+            const bgColor = points === null ? 'bg-gray-500' : (isConsideredCorrect ? 'bg-green-500' : 'bg-red-500');
+            feedbackEl.className = `fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-6 sm:p-8 rounded-2xl text-white font-bold shadow-2xl opacity-0 w-11/12 max-w-lg text-center ${bgColor}`;
+            
+            feedbackEl.classList.remove('opacity-0', 'pointer-events-none');
+            feedbackEl.style.transform = 'translate(-50%, -50%) scale(1)';
+
+            document.getElementById('continue-feedback-btn').addEventListener('click', () => {
+                feedbackEl.style.transform = 'translate(-50%, -50%) scale(0.5)';
+                feedbackEl.classList.add('opacity-0', 'pointer-events-none');
+                
+                if (isAnswer && points !== null) {
+                    currentQuestionIndex++;
+                    if (currentQuestionIndex >= shuffledQuestions.length) {
+                        endGame();
+                    } else {
+                        displayNextQuestion();
+                    }
+                }
+            }, { once: true });
+        }
+        
+        function getMotivationalMessage(finalScore) { // Fallback function
+            const percentage = (finalScore / 12) * 100;
+            if (percentage >= 80) {
+                return "Excelente, " + loggedInUser.firstName + "! Você demonstrou um ótimo conhecimento! 🏆";
+            } else if (percentage >= 50) {
+                return "Muito bem, " + loggedInUser.firstName + "! Continue estudando para aprimorar ainda mais. 👍";
+            } else {
+                return "Não desista, " + loggedInUser.firstName + "! Cada tentativa é um passo para aprender mais. ✨";
+            }
+        }
+        
+        // --- LÓGICA DE FIM DE JOGO E RANKING ---
+        function resetGame() {
+            score = 0.0;
+            currentQuestionIndex = 0;
+            maxWatchedTime = 0;
+            startTime = null;
+
+            updateScoreDisplay();
+            
+            if (player && typeof player.seekTo === 'function') {
+                player.seekTo(0, true);
+                player.stopVideo();
+            }
+            
+            continueBtn.disabled = true;
+            continueBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            showScreen(videoScreen);
+        }
+
+        async function endGame() {
+            const endTime = new Date();
+            const timeSpent = Math.round((endTime - startTime) / 1000);
+            
+            showScreen(endScreen);
+            endScreenContent.classList.remove('hidden');
+            playAgainButton.classList.remove('hidden');
+            backFromRankingButton.classList.add('hidden');
+            document.getElementById('final-score').textContent = score.toFixed(1);
+            
+            // --- Gemini Personalized Message ---
+            finalMessageEl.innerHTML = '<div class="loader mx-auto"></div>';
+            const finalScore = parseFloat(score.toFixed(1));
+            const motivationPrompt = `Aja como um professor do 5º ano, muito encorajador. O aluno ${loggedInUser.firstName} acabou de fazer um teste de geografia e tirou ${finalScore} de 12. Escreva uma mensagem motivacional curta, positiva e personalizada para ele em português.`;
+            const motivationalMessage = await callGeminiAPI(motivationPrompt, { temperature: 0.7 });
+            finalMessageEl.textContent = motivationalMessage || getMotivationalMessage(finalScore); // Fallback
+
+            const result = await callAppsScript('saveScoreAndGetRanking', { 
+                fullName: loggedInUser.name, 
+                turma: loggedInUser.turma, 
+                score: finalScore, 
+                time: timeSpent,
+                nomeDoJogo: NOME_DESTE_JOGO,
+                code: loggedInUser.code
+            });
+            
+            if (result.status === 'success') {
+                populateRankingTable(result.ranking);
+            } else {
+                document.getElementById('ranking-body').innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500">${result.message}</td></tr>`;
+            }
+        }
+        
+        async function displayRanking() {
+            showScreen(endScreen);
+            endScreenContent.classList.add('hidden');
+            playAgainButton.classList.add('hidden');
+            backFromRankingButton.classList.remove('hidden');
+
+            const result = await callAppsScript('getRanking', { nomeDoJogo: NOME_DESTE_JOGO });
+            if (result.status === 'success') {
+                populateRankingTable(result.ranking);
+            } else {
+                document.getElementById('ranking-body').innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500">${result.message}</td></tr>`;
+            }
+        }
+
+        viewRankingButton.addEventListener('click', displayRanking);
+        
+        backFromRankingButton.addEventListener('click', () => {
+            showScreen(loginScreen);
+        });
+
+        function populateRankingTable(ranking) {
+            const tbody = document.getElementById('ranking-body');
+            tbody.innerHTML = '';
+            if(ranking.length === 0){
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center">Ainda não há pontuações. Seja o primeiro!</td></tr>`;
+                return;
+            }
+            ranking.forEach((entry, index) => {
+                const isCurrentUser = loggedInUser && entry.code === loggedInUser.code;
+                const row = `
+                    <tr class="border-b border-sky-100 ${isCurrentUser ? 'bg-yellow-200' : ''}">
+                        <td class="p-2 font-bold">${index + 1}</td>
+                        <td class="p-2">${entry.name}</td>
+                        <td class="p-2">${parseFloat(entry.score).toFixed(1)}</td>
+                        <td class="p-2">${entry.turma}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        playAgainButton.addEventListener('click', resetGame);
+
+    </script>
+</body>
+</html>
+
+
