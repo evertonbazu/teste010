@@ -249,6 +249,7 @@
         let loggedInUser = null;
         let currentQuestionIndex = 0;
         let shuffledQuestions = [];
+        const geminiApiKey = "AIzaSyBbq3pXKFMpLx897D6mQIBdALITceqz4sA";
 
         // --- BANCO DE PERGUNTAS ---
         const questions = [
@@ -259,7 +260,7 @@
             { type: 'dissertative', question: "Qual é a principal função do comércio varejista?", explanation: "O comércio varejista tem como principal função vender mercadorias em pequenas quantidades diretamente para os consumidores finais, que são as pessoas que irão utilizar os produtos." },
             { type: 'dissertative', question: "Por que o comércio formal é importante para a sociedade?", explanation: "O comércio formal é importante porque ele opera de acordo com a lei, paga impostos que financiam serviços públicos (como saúde e educação) e garante direitos tanto para os consumidores (como garantia) quanto para os trabalhadores (como salário e férias)." },
             { type: 'dissertative', question: "Descreva o que caracteriza o comércio informal.", explanation: "O comércio informal é caracterizado por atividades comerciais que não possuem registro legal, não pagam impostos e muitas vezes ocorrem em espaços públicos. Os trabalhadores não têm direitos trabalhistas garantidos." },
-            { type: 'dissertative', question: "Dê um exemplo de prestação de serviço e explique por que não é considerado um produto.", explanation: "Um exemplo é um corte de cabelo em um salão de beleza. Não é um produto porque é uma atividade imaterial; você paga pela habilidade e pelo tempo do profissional, e não por um objeto que pode levar para casa." },
+            { type: 'dissertative', question: "Dê um exemplo de prestação de serviço e explique por que não é considerado um produto.", explanation: "Um exemplo é um corte de cabelo em um salão de beleza. Não é um produto porque é uma atividade imateriais; você paga pela habilidade e pelo tempo do profissional, e não por um objeto que pode levar para casa." },
             { type: 'dissertative', question: "O que são serviços particulares?", explanation: "Serviços particulares são aqueles oferecidos por empresas privadas, onde as pessoas precisam pagar diretamente para utilizá-los, como escolas particulares, hospitais privados e planos de telefonia." },
             { type: 'dissertative', question: "O que são serviços públicos? Dê dois exemplos.", explanation: "Serviços públicos são aqueles fornecidos ou regulados pelo governo para atender às necessidades da população, geralmente custeados por impostos. Exemplos incluem segurança pública (policiamento) e coleta de lixo." },
             { type: 'dissertative', question: "Qual a importância do saneamento básico para uma cidade?", explanation: "O saneamento básico é um serviço público essencial para a saúde e qualidade de vida da população, pois inclui o tratamento e abastecimento de água, a coleta e tratamento de esgoto e a gestão do lixo, prevenindo doenças." },
@@ -608,10 +609,14 @@
             updateScoreDisplay();
         }
 
-        // --- NOVOS RECURSOS COM GEMINI ---
+        // --- LÓGICA DA API GEMINI E CHAVE ---
+
+        function getApiKey() {
+            return geminiApiKey;
+        }
 
         hintBtn.addEventListener('click', async () => {
-            hintBtn.disabled = true;
+            hintBtn.disabled = true; // Disable hint button immediately
             correctionModal.classList.remove('hidden');
             correctionModal.querySelector('p').textContent = 'Aguarde! Gerando uma dica...';
             
@@ -626,20 +631,25 @@
                 showSimpleFeedback("✨ Dica Mágica!", hintText, 'hint');
             } else {
                 showSimpleFeedback("Ops!", "Não consegui gerar uma dica agora. Tente de novo!", false);
+                hintBtn.disabled = false; // Re-enable only on failure
             }
-            // A dica não reabilita o botão, o aluno precisa continuar
         });
 
-        
         async function callGeminiAPI(prompt, generationConfig = {}) {
-            const apiKey = ""; 
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                console.error('Gemini API key is missing.');
+                showSimpleFeedback("Erro", "A chave de API do Gemini não foi configurada.", false);
+                return null;
+            }
+
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
             const payload = {
                 contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: { 
                     temperature: 0.4, 
-                    maxOutputTokens: 800, // Increased token limit
+                    maxOutputTokens: 800,
                     ...generationConfig
                 },
                 safetySettings: [
@@ -689,34 +699,6 @@
         }
 
         // --- FUNÇÕES DE FEEDBACK E MODAIS ---
-        
-        function showBonusQuestion(question, explanation) {
-             feedbackEl.innerHTML = `
-                <strong class="block text-3xl mb-2">✨ Pergunta Bônus!</strong>
-                <p class="text-xl font-normal mb-4">${question}</p>
-                <div id="bonus-answer-container" class="hidden my-4 p-3 bg-white/20 rounded-lg">
-                    <p class="text-lg font-normal">${explanation}</p>
-                </div>
-                <div class="flex space-x-2">
-                    <button id="reveal-answer-btn" class="w-1/2 mt-4 bg-white text-sky-800 text-lg font-bold py-2 px-4 rounded-xl shadow-md">Revelar Resposta</button>
-                    <button id="close-bonus-btn" class="w-1/2 mt-4 bg-gray-600/50 text-white text-lg font-bold py-2 px-4 rounded-xl shadow-md">Fechar</button>
-                </div>
-            `;
-            feedbackEl.className = `fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-6 sm:p-8 rounded-2xl text-white font-bold shadow-2xl opacity-0 w-11/12 max-w-lg text-center bg-purple-600`;
-            
-            feedbackEl.classList.remove('opacity-0', 'pointer-events-none');
-            feedbackEl.style.transform = 'translate(-50%, -50%) scale(1)';
-
-            document.getElementById('reveal-answer-btn').addEventListener('click', (e) => {
-                document.getElementById('bonus-answer-container').classList.remove('hidden');
-                e.target.style.display = 'none';
-            }, { once: true });
-            document.getElementById('close-bonus-btn').addEventListener('click', () => {
-                feedbackEl.style.transform = 'translate(-50%, -50%) scale(0.5)';
-                feedbackEl.classList.add('opacity-0', 'pointer-events-none');
-            }, { once: true });
-        }
-
 
         function showSimpleFeedback(title, message, type) {
             const bgColor = type === 'hint' ? 'bg-teal-500' : (type ? 'bg-green-500' : 'bg-red-500');
@@ -733,9 +715,6 @@
             document.getElementById('continue-feedback-btn').addEventListener('click', () => {
                 feedbackEl.style.transform = 'translate(-50%, -50%) scale(0.5)';
                 feedbackEl.classList.add('opacity-0', 'pointer-events-none');
-                 if(type === 'hint') {
-                    hintBtn.disabled = false;
-                }
             }, { once: true });
         }
 
@@ -876,5 +855,4 @@
     </script>
 </body>
 </html>
-
 
